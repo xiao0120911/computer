@@ -53,6 +53,9 @@ class TreasureMap {
 
 async function findTreasure() {
   const messagesContainer = document.getElementById("messages");
+  const templeImg = document.getElementById("temple-img");         // 古庙图片
+  const treasureBoxImg = document.getElementById("treasure-box-img"); // 宝箱图片
+  const guardImg = document.getElementById("guard-img");           // 守卫图片
 
   const addMessage = (message) => {
       const msgDiv = document.createElement("div");
@@ -69,17 +72,40 @@ async function findTreasure() {
       const decoded = await TreasureMap.decodeAncientScript(clue);
       addMessage(decoded);
 
-      // 新的情节：解谜
+      // 显示古庙图片
+      templeImg.style.display = "block";
+      addMessage("你到达了神秘的古庙...");
+      await new Promise(resolve => setTimeout(resolve, 2000)); // 停留2秒
+      templeImg.style.display = "none";
+
+      // 解谜过程
       const puzzleResult = await TreasureMap.solvePuzzle();
       addMessage(puzzleResult);
 
+      // 显示宝箱并处理守卫事件
       const box = await TreasureMap.searchTemple(decoded);
       addMessage(box);
 
+      // 随机显示守卫图片
+      if (Math.random() < 0.5) {
+          addMessage("糟糕!遇到了神庙守卫!");
+          guardImg.style.display = "block";
+          await new Promise(resolve => setTimeout(resolve, 2000)); // 停留2秒
+          guardImg.style.display = "none";
+          throw new Error("遇到了神庙守卫!");
+      }
+
+      // 显示宝箱图片
+      treasureBoxImg.style.display = "block";
       const treasure = await TreasureMap.openTreasureBox();
       addMessage(treasure);
   } catch (error) {
       addMessage("任务失败: " + error);
+  } finally {
+      // 结束时隐藏所有图片
+      templeImg.style.display = "none";
+      treasureBoxImg.style.display = "none";
+      guardImg.style.display = "none";
   }
 }
 
