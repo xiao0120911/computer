@@ -54,8 +54,9 @@ class TreasureMap {
 async function findTreasure() {
     const messagesContainer = document.getElementById("messages");
     const animationContainer = document.getElementById("animation-container");
-    const guardImg = document.getElementById("guard-img");           // 守卫图片
-    const treasureBoxImg = document.getElementById("treasure-box-img"); // 宝箱图片
+    const guardImg = document.getElementById("guard-img");
+    const treasureBoxImg = document.getElementById("treasure-box-img");
+    const fullScreenImage = document.getElementById("full-screen-image");
 
     const addMessage = (message) => {
         const msgDiv = document.createElement("div");
@@ -82,32 +83,44 @@ async function findTreasure() {
         const puzzleResult = await TreasureMap.solvePuzzle();
         addMessage(puzzleResult);
 
-        // 保持古庙背景不变
+        // 保持古庙背景不变并继续游戏
 
         // 处理守卫事件
-        const box = await TreasureMap.searchTemple(decoded);
-        addMessage(box);
-
-        // 随机显示守卫图片
-        if (Math.random() < 0.5) {
+        try {
+            const box = await TreasureMap.searchTemple(decoded);
+            addMessage(box);
+        } catch (guardEncounter) {
             addMessage("糟糕!遇到了神庙守卫!");
-            guardImg.style.display = "block";
+            guardImg.style.display = "block"; // 显示守卫图片
             await new Promise(resolve => setTimeout(resolve, 2000)); // 停留2秒
             guardImg.style.display = "none";
-            throw new Error("遇到了神庙守卫!");
+
+            // 任务失败，全屏显示失败图片
+            fullScreenImage.style.backgroundImage = "url('image5.jpg')";
+            fullScreenImage.style.display = "block";
+            throw new Error("任务失败: 遇到了神庙守卫!");
         }
 
         // 显示宝箱图片
         treasureBoxImg.style.display = "block";
         const treasure = await TreasureMap.openTreasureBox();
         addMessage(treasure);
+
+        // 成功，全屏显示宝藏图片
+        fullScreenImage.style.backgroundImage = "url('image4.jpg')";
+        fullScreenImage.style.display = "block";
     } catch (error) {
-        addMessage("任务失败: " + error);
+        addMessage(error.message);
     } finally {
-        // 隐藏所有图片并清除背景
+        // 隐藏所有图片和背景，重置页面
+        animationContainer.style.backgroundImage = "none";
         guardImg.style.display = "none";
         treasureBoxImg.style.display = "none";
-        animationContainer.style.backgroundImage = "none";
+
+        // 2秒后隐藏全屏图片
+        setTimeout(() => {
+            fullScreenImage.style.display = "none";
+        }, 2000);
     }
 }
 
